@@ -2,6 +2,9 @@
   "name": "pedigreejs-nextjs",
   "version": "0.1.0",
   "private": true,
+  "license": "GPL-3.0-or-later",
+  "author": "Your Name",
+  "description": "Next.js implementation of PedigreeJS - a pedigree visualization library",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
@@ -11,13 +14,17 @@
   "dependencies": {
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.4"
+    "next": "15.5.4",
+    "d3": "^7.8.5",
+    "jquery": "^3.7.1"
   },
   "devDependencies": {
     "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/d3": "^7.4.3",
+    "@types/jquery": "^3.5.29",
     "@tailwindcss/postcss": "^4",
     "tailwindcss": "^4",
     "eslint": "^9",

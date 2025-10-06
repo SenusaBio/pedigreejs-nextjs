@@ -1,26 +1,179 @@
-@import "tailwindcss";
+/**
+/* © 2024 University of Cambridge. All rights reserved.  
+**/
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fff;
+}
+
+.header {
+  background-color: #DDD1C1;
+  margin-right: auto;
+  margin-left: auto;
+  margin-bottom: 20px;
+  padding: 2rem;
+}
+
+.container {
+  width: 90%;
+  max-width: 1140px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#pedigree, #pedigree_history {
+  text-align: center;
+}
+
+.container span {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0.2em;
+  display: flex; 
+  justify-content: center;
+}
+
+p {
+  margin: 1rem 4rem;
+  max-width: 800px;
+  text-align: left;
+}
+
+a.button {
+  color: #fff;
+  background-color: #337ab7;
+  border-color: #2e6da4;
+  padding: 10px 16px;
+  font-size: 18px;
+  line-height: 1.3333333;
+  border-radius: 6px;
+  text-decoration: none;
+  margin-right: 2rem;
+}
+
+.fa.fg-grey {
+  color: grey;
+}
+
+.popup_selection, .addpartner, .addparents, .delete, .settings {
+  cursor: pointer;
+}
+
+.addsibling, .addchild {
+  cursor: default;
+}
+
+.p-2 { 
+  padding: 0.5em; 
+}
+
+.pe-2 { 
+  padding-right: 0.75em; 
+}
+
+svg {
+  overflow: hidden;
+}
+
+/* Pedigree control buttons */
+#pedigree_history {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+#pedigree_history span {
+  display: inline-block;
+  margin: 0;
+  font-size: 1rem;
+}
+
+#pedigree_history .fa {
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+  font-size: 0.9rem;
+}
+
+#pedigree_history .fa:hover {
+  background-color: #f0f0f0;
+}
+
+#pedigree_history .fa.fg-grey {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+#pedigree_history .fa.fg-grey:hover {
+  background-color: transparent;
+}
+
+/* Ensure specific Font Awesome icons are visible */
+.fa-redo:before {
+  content: "\f01e";
+}
+
+.fa-file-image:before {
+  content: "\f1c5";
+}
+
+.fa-undo:before {
+  content: "\f0e2";
+}
+
+.fa-refresh:before {
+  content: "\f021";
+}
+
+.fa-crosshairs:before {
+  content: "\f05b";
+}
+
+.fa-minus-circle:before {
+  content: "\f056";
+}
+
+.fa-plus-circle:before {
+  content: "\f055";
+}
+
+.fa-arrows-alt:before {
+  content: "\f0b2";
+}
+
+/* Additional control buttons */
+.pedigree-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.control-btn {
+  padding: 0.5rem 1rem;
+  background-color: #337ab7;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.control-btn:hover {
+  background-color: #2e6da4;
 }
