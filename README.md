@@ -9,6 +9,7 @@ This project is based on the original [PedigreeJS library](https://github.com/CC
 ## Repository
 
 - **This Next.js Implementation**: [https://github.com/SenusaBio/pedigreejs-nextjs](https://github.com/SenusaBio/pedigreejs-nextjs)
+- **Chart Generator Branch**: `generate-chart` - Enhanced version with chart generation features
 - **Original PedigreeJS Library**: [https://github.com/CCGE-BOADICEA/pedigreejs](https://github.com/CCGE-BOADICEA/pedigreejs)
 - **Original React Example**: [https://github.com/CCGE-BOADICEA/pedigreejs-react-app](https://github.com/CCGE-BOADICEA/pedigreejs-react-app)
 
@@ -21,6 +22,7 @@ This project is based on the original [PedigreeJS library](https://github.com/CC
 - **jQuery v3** for DOM manipulation
 - **Client-side rendering** for pedigreejs compatibility
 - **Dynamic imports** to avoid SSR issues
+- **Chart Generator** - Generate pedigree charts from JSON data
 
 ## Getting Started
 
