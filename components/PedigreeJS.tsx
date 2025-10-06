@@ -15,15 +15,27 @@ const PedigreeJSComponent: React.FC = () => {
       try {
         // Import dependencies
         const d3 = await import('d3');
-        const $ = await import('jquery');
+        const $ = (await import('jquery')).default;
         
-        // Make jQuery available globally for pedigreejs
+        // Make jQuery available globally first
         (window as any).d3 = d3;
         (window as any).$ = $;
         (window as any).jQuery = $;
+        
+        // Load jQuery UI from CDN
+        if (!document.querySelector('script[src*="jquery-ui"]')) {
+          const jqueryUIScript = document.createElement('script');
+          jqueryUIScript.src = 'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js';
+          document.head.appendChild(jqueryUIScript);
+          
+          // Wait for jQuery UI to load
+          await new Promise((resolve) => {
+            jqueryUIScript.onload = resolve;
+          });
+        }
 
         // Import the pedigreejs library dynamically
-        const pedigreeModule = await import('../lib/pedigreejs.es.v3.0.0-rc8');
+        const pedigreeModule = await import('../lib/pedigreejs.es.v4.0.0-rc1');
         const { pedigreejs, pedigreejs_zooming, pedigreejs_pedcache, pedigreejs_io } = pedigreeModule;
 
         const w = window.innerWidth;
@@ -36,7 +48,7 @@ const PedigreeJSComponent: React.FC = () => {
           'height': h * 0.6,
           'symbol_size': 30,
           'font_size': '.75em',
-          'edit': false,
+          'edit': true,
           'zoomIn': .5,
           'zoomOut': 1.5,
           'zoomSrc': ['wheel', 'button'],
@@ -121,7 +133,7 @@ const PedigreeJSComponent: React.FC = () => {
 
   const pedigreejs_load = async (opts: any) => {
     try {
-      const pedigreeModule = await import('../lib/pedigreejs.es.v3.0.0-rc8');
+      const pedigreeModule = await import('../lib/pedigreejs.es.v4.0.0-rc1');
       const { pedigreejs, pedigreejs_zooming } = pedigreeModule;
       pedigreejs.rebuild(opts);
       pedigreejs_zooming.scale_to_fit(opts);
@@ -140,6 +152,51 @@ const PedigreeJSComponent: React.FC = () => {
     <>
       <div id="pedigree_history" className="p-2" ref={historyRef}></div>
       <div key="tree" id="pedigree" ref={pedigreeRef}></div>
+      
+      {/* Edit dialog form required by pedigreejs */}
+      <div id="node_properties" title="Edit Node Properties" style={{display: 'none'}}>
+        <form>
+          <table>
+            <tbody>
+              <tr>
+                <td>Name:</td>
+                <td><input type="text" id="node_name" /></td>
+              </tr>
+              <tr>
+                <td>Display Name:</td>
+                <td><input type="text" id="node_display_name" /></td>
+              </tr>
+              <tr>
+                <td>Sex:</td>
+                <td>
+                  <select id="node_sex">
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                    <option value="U">Unknown</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>Age:</td>
+                <td><input type="number" id="node_age" /></td>
+              </tr>
+              <tr>
+                <td>Year of Birth:</td>
+                <td><input type="number" id="node_yob" /></td>
+              </tr>
+              <tr>
+                <td>Status:</td>
+                <td>
+                  <select id="node_status">
+                    <option value="0">Alive</option>
+                    <option value="1">Dead</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+      </div>
     </>
   );
 };

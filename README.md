@@ -55,7 +55,7 @@ pedigreejs-nextjs/
 ├── components/
 │   └── PedigreeJS.tsx       # PedigreeJS React component
 ├── lib/
-│   └── pedigreejs.es.v3.0.0-rc8.js  # PedigreeJS library
+│   └── pedigreejs.es.v4.0.0-rc1.js  # PedigreeJS library
 ├── next.config.ts           # Next.js configuration
 └── package.json             # Dependencies and scripts
 ```

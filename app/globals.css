@@ -8,6 +8,8 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 body {
   margin: 0;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -176,4 +178,31 @@ svg {
 
 .control-btn:hover {
   background-color: #2e6da4;
+}
+
+/* jQuery UI Dialog Header Override */
+.ui-dialog .ui-dialog-titlebar {
+  background-color: #337ab7 !important;
+  background-image: none !important;
+  border: 1px solid #2e6da4 !important;
+  color: white !important;
+}
+
+.ui-dialog .ui-dialog-title {
+  color: white !important;
+  text-shadow: none !important;
+}
+
+.ui-dialog .ui-dialog-titlebar .ui-dialog-title {
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
+.ui-dialog .ui-dialog-titlebar-close {
+  background: none !important;
+  border: none !important;
+}
+
+.ui-dialog .ui-dialog-titlebar-close:hover {
+  background-color: rgba(255,255,255,0.2) !important;
 }
