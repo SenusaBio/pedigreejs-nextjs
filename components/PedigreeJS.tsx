@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // PedigreeJS Component
 const PedigreeJSComponent: React.FC = () => {
   const pedigreeRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
+  const [jsonInput, setJsonInput] = useState('');
+  const [currentOpts, setCurrentOpts] = useState<any>(null);
 
   useEffect(() => {
     const initializePedigree = async () => {
@@ -68,30 +70,34 @@ const PedigreeJSComponent: React.FC = () => {
         const w = window.innerWidth;
         const h = window.innerHeight;
         
-        const opts = {
+        const opts = Object.freeze({
           'targetDiv': 'pedigreejs',
           'btn_target': 'pedigree_history',
           'width': (w > 800 ? 700 : w - 50),
           'height': h * 0.6,
           'symbol_size': 30,
           'font_size': '.75em',
-          'edit': true,
+          'edit': false,
+          'showWidgets': false,
+          'widgets': [],
+          'readonly': true,
           'zoomIn': .5,
           'zoomOut': 1.5,
           'zoomSrc': ['wheel', 'button'],
           'labels': ['display_name', ['age', 'yob'], 'stillbirth', 'disease-list'],
           'diseases': [],
           'DEBUG': false
-        };
+        });
 
         // Check for cached data
+        let finalOpts = { ...opts };
         let local_dataset = pedigreejs_pedcache.current(opts);
         if (local_dataset !== undefined && local_dataset !== null) {
-          opts.dataset = local_dataset;
+          finalOpts.dataset = local_dataset;
           // Auto-detect diseases from cached dataset
           const detectedDiseases = autoDetectDiseases(local_dataset);
           if (detectedDiseases.length > 0) {
-            opts.diseases = detectedDiseases;
+            finalOpts.diseases = detectedDiseases;
           }
         } else {
           // Default CanRisk data
@@ -120,7 +126,7 @@ const PedigreeJSComponent: React.FC = () => {
             'XFAM\t19\t0\tchild14\tchild10\tchild11\tM\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
             'XFAM\t20\t0\tchild15\tchild10\tchild11\tF\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0';
           
-          pedigreejs_io.load_data(canRiskData, opts);
+          pedigreejs_io.load_data(canRiskData, finalOpts);
         }
 
         // Function to load data from file
@@ -132,12 +138,11 @@ const PedigreeJSComponent: React.FC = () => {
             // Auto-detect diseases from loaded data
             const detectedDiseases = autoDetectDiseases(data);
             
-            opts.dataset = data;
+            const newOpts = { ...opts, dataset: data };
             if (detectedDiseases.length > 0) {
-              opts.diseases = detectedDiseases;
+              newOpts.diseases = detectedDiseases;
             }
-            
-            return true;
+            return newOpts;
           } catch (error) {
             console.warn('Could not load file:', filename, error);
             return false;
@@ -145,22 +150,38 @@ const PedigreeJSComponent: React.FC = () => {
         };
 
         // Try to load ped (35).txt if available
-        const fileLoaded = await loadDataFromFile('ped (35).txt');
-        if (!fileLoaded && !local_dataset) {
+        const loadedOpts = await loadDataFromFile('ped (35).txt');
+        if (loadedOpts) {
+          finalOpts = loadedOpts;
+        } else if (!local_dataset) {
           // Fallback to default data if no file and no cache
           console.log('Using default CanRisk data');
         }
 
+        // Store opts for later use
+        setCurrentOpts(finalOpts);
+
         // Initialize pedigree
-        showPedigree(opts);
+        showPedigree(finalOpts);
+        
+        // Disable right-click context menu on canvas
+        setTimeout(() => {
+          const pedigreeDiv = document.getElementById('pedigreejs');
+          if (pedigreeDiv) {
+            pedigreeDiv.addEventListener('contextmenu', (e) => {
+              e.preventDefault();
+              return false;
+            });
+          }
+        }, 200);
         
         // Initialize buttons after pedigree is loaded
         setTimeout(() => {
           if (typeof pedigreeModule.addButtons === 'function') {
-            pedigreeModule.addButtons(opts);
+            pedigreeModule.addButtons(finalOpts);
           }
           if (typeof pedigreeModule.addIO === 'function') {
-            pedigreeModule.addIO(opts);
+            pedigreeModule.addIO(finalOpts);
           }
         }, 100);
 
@@ -185,6 +206,60 @@ const PedigreeJSComponent: React.FC = () => {
     if (refresh) refresh[0]?.style && (refresh[0].style.display = "none");
   };
 
+  const loadJsonData = async () => {
+    if (!jsonInput.trim() || !currentOpts) return;
+    
+    try {
+      const data = JSON.parse(jsonInput);
+      
+      // Auto-detect diseases from loaded data
+      const autoDetectDiseases = (dataset: any[]) => {
+        const diseaseFields = new Set<string>();
+        
+        dataset.forEach(person => {
+          Object.keys(person).forEach(key => {
+            if (key.endsWith('_diagnosis_age') || key === 'affected') {
+              diseaseFields.add(key.replace('_diagnosis_age', ''));
+            }
+            if (person[key] === true && !key.endsWith('_diagnosis_age') && 
+                !['top_level', 'noparents', 'proband', 'stillbirth', 'miscarriage', 'termination', 'adopted_in', 'adopted_out'].includes(key)) {
+              diseaseFields.add(key);
+            }
+          });
+        });
+        
+        return Array.from(diseaseFields).map((disease, index) => {
+          const grayValue = Math.floor(80 + (index * 30) % 100);
+          return {
+            type: disease,
+            colour: `rgb(${grayValue}, ${grayValue}, ${grayValue})`
+          };
+        });
+      };
+      
+      const detectedDiseases = autoDetectDiseases(data);
+      
+      const newOpts = { ...currentOpts, dataset: data };
+      if (detectedDiseases.length > 0) {
+        newOpts.diseases = detectedDiseases;
+      }
+      
+      // Update current opts
+      setCurrentOpts(newOpts);
+      
+      // Rebuild pedigree with new data
+      const pedigreeModule = await import('../lib/pedigreejs.es.v4.0.0-rc1');
+      const { pedigreejs, pedigreejs_zooming } = pedigreeModule;
+      
+      pedigreejs.rebuild(newOpts);
+      pedigreejs_zooming.scale_to_fit(newOpts);
+      
+      alert('Data loaded successfully!');
+    } catch (error) {
+      alert('Invalid JSON format: ' + (error as Error).message);
+    }
+  };
+
   const pedigreejs_load = async (opts: any) => {
     try {
       const pedigreeModule = await import('../lib/pedigreejs.es.v4.0.0-rc1');
@@ -206,6 +281,40 @@ const PedigreeJSComponent: React.FC = () => {
     <>
       <div id="pedigree_history" className="p-2" ref={historyRef}></div>
       <div key="tree" id="pedigree" ref={pedigreeRef}></div>
+      
+      {/* JSON Input Form */}
+      <div className="json-input-form">
+        <h3>📊 Load JSON Pedigree Data</h3>
+        <textarea
+          className="json-textarea"
+          placeholder={`Paste your JSON pedigree data here...
+
+Example format:
+[
+  {
+    "name": "person1",
+    "display_name": "John Doe",
+    "sex": "M",
+    "age": "45",
+    "mother": "mother_name",
+    "father": "father_name",
+    "proband": true
+  }
+]`}
+          value={jsonInput}
+          onChange={(e) => setJsonInput(e.target.value)}
+        />
+        <div className="json-helper-text">
+          💡 Tip: Paste valid JSON array with pedigree data. Diseases will be auto-detected.
+        </div>
+        <button
+          className="load-btn"
+          onClick={loadJsonData}
+          disabled={!jsonInput.trim()}
+        >
+          {!jsonInput.trim() ? '⚠️ Enter Data' : '🚀 Load Data'}
+        </button>
+      </div>
       
       {/* Edit dialog form required by pedigreejs */}
       <div id="node_properties" title="Edit Node Properties" style={{display: 'none'}}>

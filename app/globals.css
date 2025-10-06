@@ -206,3 +206,137 @@ svg {
 .ui-dialog .ui-dialog-titlebar-close:hover {
   background-color: rgba(255,255,255,0.2) !important;
 }
+
+/* JSON Input Form Styles */
+.json-input-form {
+  background: linear-gradient(135deg, #fafafa 0%, #fafafa 100%);
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin: 0 auto 1.5rem auto;
+  /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+  transition: all 0.3s ease;
+  width: 700px;
+  max-width: calc(100vw - 100px);
+  box-sizing: border-box;
+}
+
+.json-input-form:hover {
+  border-color: #337ab7;
+  box-shadow: 0 6px 12px rgba(51, 122, 183, 0.15);
+}
+
+.json-input-form h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.json-input-form h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #337ab7, #2e6da4);
+  border-radius: 2px;
+}
+
+.json-textarea {
+  width: 100%;
+  height: 10rem;
+  padding: 1rem;
+  border: 2px solid #ced4da;
+  border-radius: 8px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  resize: vertical;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.json-textarea::placeholder {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.json-textarea:focus {
+  outline: none;
+  border-color: #337ab7;
+  box-shadow: 0 0 0 3px rgba(51, 122, 183, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: #fafbfc;
+}
+
+.load-btn {
+  margin-top: 1rem;
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, #337ab7 0%, #2e6da4 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(51, 122, 183, 0.3);
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  min-width: 140px;
+}
+
+.load-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2e6da4 0%, #245580 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(51, 122, 183, 0.4);
+}
+
+.load-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(51, 122, 183, 0.3);
+}
+
+.load-btn:disabled {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.json-helper-text {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.5rem;
+  text-align: center;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .json-input-form {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .json-textarea {
+    height: 8rem;
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+  
+  .load-btn {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
