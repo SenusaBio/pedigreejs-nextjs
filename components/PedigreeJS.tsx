@@ -38,6 +38,33 @@ const PedigreeJSComponent: React.FC = () => {
         const pedigreeModule = await import('../lib/pedigreejs.es.v4.0.0-rc1');
         const { pedigreejs, pedigreejs_zooming, pedigreejs_pedcache, pedigreejs_io } = pedigreeModule;
 
+        // Auto-detect diseases from dataset
+        const autoDetectDiseases = (dataset: any[]) => {
+          const diseaseFields = new Set<string>();
+          
+          dataset.forEach(person => {
+            Object.keys(person).forEach(key => {
+              if (key.endsWith('_diagnosis_age') || key === 'affected') {
+                diseaseFields.add(key.replace('_diagnosis_age', ''));
+              }
+              // Detect boolean disease fields
+              if (person[key] === true && !key.endsWith('_diagnosis_age') && 
+                  !['top_level', 'noparents', 'proband', 'stillbirth', 'miscarriage', 'termination', 'adopted_in', 'adopted_out'].includes(key)) {
+                diseaseFields.add(key);
+              }
+            });
+          });
+          
+          // Generate grayscale colors for diseases
+          return Array.from(diseaseFields).map((disease, index) => {
+            const grayValue = Math.floor(80 + (index * 30) % 100);
+            return {
+              type: disease,
+              colour: `rgb(${grayValue}, ${grayValue}, ${grayValue})`
+            };
+          });
+        };
+
         const w = window.innerWidth;
         const h = window.innerHeight;
         
@@ -52,14 +79,8 @@ const PedigreeJSComponent: React.FC = () => {
           'zoomIn': .5,
           'zoomOut': 1.5,
           'zoomSrc': ['wheel', 'button'],
-          'labels': [['age', 'yob']],
-          'diseases': [
-            { 'type': 'breast_cancer', 'colour': '#F68F35' },
-            { 'type': 'breast_cancer2', 'colour': 'pink' },
-            { 'type': 'ovarian_cancer', 'colour': '#4DAA4D' },
-            { 'type': 'pancreatic_cancer', 'colour': '#4289BA' },
-            { 'type': 'prostate_cancer', 'colour': '#D5494A' }
-          ],
+          'labels': ['display_name', ['age', 'yob'], 'stillbirth', 'disease-list'],
+          'diseases': [],
           'DEBUG': false
         };
 
@@ -67,6 +88,11 @@ const PedigreeJSComponent: React.FC = () => {
         let local_dataset = pedigreejs_pedcache.current(opts);
         if (local_dataset !== undefined && local_dataset !== null) {
           opts.dataset = local_dataset;
+          // Auto-detect diseases from cached dataset
+          const detectedDiseases = autoDetectDiseases(local_dataset);
+          if (detectedDiseases.length > 0) {
+            opts.diseases = detectedDiseases;
+          }
         } else {
           // Default CanRisk data
           const canRiskData =
@@ -95,6 +121,34 @@ const PedigreeJSComponent: React.FC = () => {
             'XFAM\t20\t0\tchild15\tchild10\tchild11\tF\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0';
           
           pedigreejs_io.load_data(canRiskData, opts);
+        }
+
+        // Function to load data from file
+        const loadDataFromFile = async (filename: string) => {
+          try {
+            const response = await fetch(`/${filename}`);
+            const data = await response.json();
+            
+            // Auto-detect diseases from loaded data
+            const detectedDiseases = autoDetectDiseases(data);
+            
+            opts.dataset = data;
+            if (detectedDiseases.length > 0) {
+              opts.diseases = detectedDiseases;
+            }
+            
+            return true;
+          } catch (error) {
+            console.warn('Could not load file:', filename, error);
+            return false;
+          }
+        };
+
+        // Try to load ped (35).txt if available
+        const fileLoaded = await loadDataFromFile('ped (35).txt');
+        if (!fileLoaded && !local_dataset) {
+          // Fallback to default data if no file and no cache
+          console.log('Using default CanRisk data');
         }
 
         // Initialize pedigree

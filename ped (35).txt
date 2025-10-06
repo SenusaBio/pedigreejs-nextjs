@@ -1,0 +1,43 @@
+[
+  {
+    "name": "m21",
+    "display_name": "father",
+    "first_name": "Jill",
+    "last_name": "Smith",
+    "sex": "M",
+    "top_level": true,
+    "age": "45",
+    "status": "1",
+    "yob": "1980",
+    "prostate_cancer_diagnosis_age": "40"
+  },
+  {
+    "name": "f21",
+    "display_name": "mother",
+    "first_name": "Jill",
+    "last_name": "Smith",
+    "sex": "F",
+    "top_level": true,
+    "age": "40",
+    "yob": "1985",
+    "breast_cancer_diagnosis_age": "20",
+    "ovarian_cancer": true
+  },
+  {
+    "name": "qYmf",
+    "sex": "U",
+    "mother": "f21",
+    "father": "m21",
+    "adopted_out": true,
+    "status": "1"
+  },
+  {
+    "name": "ch1",
+    "sex": "F",
+    "mother": "f21",
+    "father": "m21",
+    "proband": true,
+    "status": "0",
+    "display_name": "child"
+  }
+]
