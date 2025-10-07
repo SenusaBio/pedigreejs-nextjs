@@ -38,6 +38,18 @@ body {
   text-align: center;
 }
 
+#pedigreejs {
+  width: 700px;
+  max-width: calc(100vw - 100px);
+  margin: 0 auto 1.5rem auto;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #fafafa 0%, #fafafa 100%);
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
 .container span {
   font-size: 2em;
   font-weight: bold;
