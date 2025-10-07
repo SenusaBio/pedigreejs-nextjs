@@ -6,8 +6,10 @@ import React, { useEffect, useRef, useState } from 'react';
 const PedigreeJSComponent: React.FC = () => {
   const pedigreeRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [jsonInput, setJsonInput] = useState('');
   const [currentOpts, setCurrentOpts] = useState<any>(null);
+  const [jsonError, setJsonError] = useState<string>('');
 
   useEffect(() => {
     const initializePedigree = async () => {
@@ -89,9 +91,30 @@ const PedigreeJSComponent: React.FC = () => {
           'DEBUG': false
         });
 
+        // Function to clean circular references from dataset
+        const cleanDataset = (dataset: any[]) => {
+          return dataset.map(person => {
+            const cleaned = { ...person };
+            // Remove circular reference properties that pedigreejs adds internally
+            delete cleaned.father;
+            delete cleaned.mother;
+            delete cleaned.parent_node;
+            delete cleaned.children;
+            delete cleaned.partners;
+            return cleaned;
+          });
+        };
+
         // Check for cached data
         let finalOpts = { ...opts };
-        let local_dataset = pedigreejs_pedcache.current(opts);
+        let local_dataset;
+        try {
+          local_dataset = pedigreejs_pedcache.current(opts);
+        } catch (error) {
+          console.warn('Cache error, clearing cache:', error);
+          localStorage.clear();
+          local_dataset = null;
+        }
         if (local_dataset !== undefined && local_dataset !== null) {
           finalOpts.dataset = local_dataset;
           // Auto-detect diseases from cached dataset
@@ -100,33 +123,14 @@ const PedigreeJSComponent: React.FC = () => {
             finalOpts.diseases = detectedDiseases;
           }
         } else {
-          // Default CanRisk data
-          const canRiskData =
-            '##CanRisk 3.0\n' +
-            '##FamID\tName\tTarget\tIndivID\tFathID\tMothID\tSex\tMZtwin\tDead\tAge\tYob\tBC1\tBC2\tOC\tPRO\tPAN\tAshkn\tBRCA1\tBRCA2\tPALB2\tATM\tCHEK2\tBARD1\tRAD51D\tRAD51C\tBRIP1\tER:PR:HER2:CK14:CK56\n' +
-            'XFAM\t0\t0\tgrandma\t0\t0\tF\t0\t1\t85\t1933\t55\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t1\t0\tgrandpa\t0\t0\tM\t0\t1\t88\t1930\t0\t0\t0\t71\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t2\t0\tparent1\t0\t0\tF\t0\t0\t50\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t3\t0\tparent2\tgrandpa\tgrandma\tM\t0\t0\t60\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t4\t0\tparent3\tgrandpa\tgrandma\tF\t0\t0\t55\t0\t53\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t5\t0\tparent4\t0\t0\tM\t0\t0\t60\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t6\t0\tchild1\tparent2\tparent1\tF\t0\t0\t40\t0\t40\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t7\t0\tchild2\tparent2\tparent1\tF\t0\t0\t38\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t8\t0\tchild3\tparent2\tparent1\tF\t0\t0\t36\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t9\t0\tchild4\tparent2\tparent1\tM\t0\t0\t36\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t10\t0\tchild5\tparent2\tparent1\tF\t0\t0\t36\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t11\t0\tchild6\tparent2\tparent1\tM\t0\t0\t36\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t12\t1\tchild7\tparent4\tparent3\tF\t0\t0\t25\t2000\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t13\t0\tchild8\tparent4\tparent3\tF\t0\t0\t38\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t14\t0\tchild9\tparent4\tparent3\tF\t0\t0\t23\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t15\t0\tchild10\tparent2\tparent1\tM\t0\t0\t35\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t16\t0\tchild11\tparent4\tparent3\tF\t0\t0\t28\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t17\t0\tchild12\tchild10\tchild11\tM\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t18\t0\tchild13\tchild10\tchild11\tF\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t19\t0\tchild14\tchild10\tchild11\tM\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0\n' +
-            'XFAM\t20\t0\tchild15\tchild10\tchild11\tF\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0\t0:0:0:0:0';
+          // Default simple family data
+          const defaultData = [
+            {"name":"m21","display_name":"father","sex":"M","top_level":true},
+            {"name":"f21","display_name":"mother","sex":"F","top_level":true},
+            {"name":"ch1","sex":"F","mother":"f21","father":"m21","proband":true,"status":"0","display_name":"child"}
+          ];
           
-          pedigreejs_io.load_data(canRiskData, finalOpts);
+          finalOpts.dataset = defaultData;
         }
 
         // Function to load data from file
@@ -155,7 +159,7 @@ const PedigreeJSComponent: React.FC = () => {
           finalOpts = loadedOpts;
         } else if (!local_dataset) {
           // Fallback to default data if no file and no cache
-          console.log('Using default CanRisk data');
+          console.log('Using default simple family data');
         }
 
         // Store opts for later use
@@ -164,16 +168,16 @@ const PedigreeJSComponent: React.FC = () => {
         // Initialize pedigree
         showPedigree(finalOpts);
         
-        // Disable right-click context menu on canvas
+        // Disable right-click context menu on SVG canvas
         setTimeout(() => {
-          const pedigreeDiv = document.getElementById('pedigreejs');
-          if (pedigreeDiv) {
-            pedigreeDiv.addEventListener('contextmenu', (e) => {
+          const pedigreeContainer = document.getElementById('pedigreejs');
+          if (pedigreeContainer) {
+            pedigreeContainer.addEventListener('contextmenu', (e) => {
               e.preventDefault();
               return false;
             });
           }
-        }, 200);
+        }, 500);
         
         // Initialize buttons after pedigree is loaded
         setTimeout(() => {
@@ -202,8 +206,83 @@ const PedigreeJSComponent: React.FC = () => {
       ped.appendChild(newP);
       pedigreejs_load(opts);
     }
-    const refresh = document.getElementsByClassName("fa-refresh");
-    if (refresh) refresh[0]?.style && (refresh[0].style.display = "none");
+
+  };
+
+  const formatJson = (text: string) => {
+    try {
+      const parsed = JSON.parse(text);
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      return text;
+    }
+  };
+
+  const handleJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setJsonInput(e.target.value);
+    setJsonError('');
+  };
+
+  const highlightErrorLine = (errorMessage: string) => {
+    const lineMatch = errorMessage.match(/line (\d+)/);
+    if (lineMatch && textareaRef.current) {
+      const lineNumber = parseInt(lineMatch[1]) - 1;
+      const lines = jsonInput.split('\n');
+      let position = 0;
+      for (let i = 0; i < lineNumber && i < lines.length; i++) {
+        position += lines[i].length + 1;
+      }
+      const lineEnd = position + (lines[lineNumber]?.length || 0);
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(position, lineEnd);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = textarea.value;
+      const newValue = value.substring(0, start) + '  ' + value.substring(end);
+      textarea.value = newValue;
+      textarea.selectionStart = textarea.selectionEnd = start + 2;
+      setJsonInput(newValue);
+    }
+  };
+
+  const handleJsonBlur = () => {
+    if (jsonInput.trim() && jsonInput.length > 10) {
+      try {
+        JSON.parse(jsonInput);
+        setJsonInput(formatJson(jsonInput));
+        setJsonError('');
+      } catch (error) {
+        if (jsonInput.includes('{') && jsonInput.includes('}')) {
+          setJsonError((error as Error).message);
+          setTimeout(() => highlightErrorLine((error as Error).message), 100);
+        }
+      }
+    }
+  };
+
+  const handleJsonPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedData = e.clipboardData.getData('text');
+    if (pastedData.trim()) {
+      e.preventDefault();
+      const target = e.currentTarget;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const currentValue = target.value;
+      const newValue = currentValue.substring(0, start) + pastedData + currentValue.substring(end);
+      const formatted = formatJson(newValue);
+      target.value = formatted;
+      setJsonInput(formatted);
+      setTimeout(() => {
+        target.selectionStart = target.selectionEnd = start + pastedData.length;
+      }, 0);
+    }
   };
 
   const loadJsonData = async () => {
@@ -211,6 +290,22 @@ const PedigreeJSComponent: React.FC = () => {
     
     try {
       const data = JSON.parse(jsonInput);
+      
+      // Validate data is array
+      if (!Array.isArray(data)) {
+        throw new Error('Data must be an array of person objects');
+      }
+      
+      // Validate required fields
+      for (let i = 0; i < data.length; i++) {
+        const person = data[i];
+        if (!person.name) {
+          throw new Error(`Person at index ${i} is missing required 'name' field`);
+        }
+        if (!person.sex || !['M', 'F', 'U'].includes(person.sex)) {
+          throw new Error(`Person '${person.name}' has invalid or missing 'sex' field (must be M, F, or U)`);
+        }
+      }
       
       // Auto-detect diseases from loaded data
       const autoDetectDiseases = (dataset: any[]) => {
@@ -254,9 +349,12 @@ const PedigreeJSComponent: React.FC = () => {
       pedigreejs.rebuild(newOpts);
       pedigreejs_zooming.scale_to_fit(newOpts);
       
+      setJsonError('');
       alert('Data loaded successfully!');
     } catch (error) {
-      alert('Invalid JSON format: ' + (error as Error).message);
+      const errorMsg = (error as Error).message;
+      setJsonError(errorMsg);
+      setTimeout(() => highlightErrorLine(errorMsg), 100);
     }
   };
 
@@ -286,6 +384,7 @@ const PedigreeJSComponent: React.FC = () => {
       <div className="json-input-form">
         <h3>📊 Load JSON Pedigree Data</h3>
         <textarea
+          ref={textareaRef}
           className="json-textarea"
           placeholder={`Paste your JSON pedigree data here...
 
@@ -302,8 +401,16 @@ Example format:
   }
 ]`}
           value={jsonInput}
-          onChange={(e) => setJsonInput(e.target.value)}
+          onChange={handleJsonChange}
+          onBlur={handleJsonBlur}
+          onPaste={handleJsonPaste}
+          onKeyDown={handleKeyDown}
         />
+        {jsonError && (
+          <div className="json-error-text">
+            ❌ {jsonError}
+          </div>
+        )}
         <div className="json-helper-text">
           💡 Tip: Paste valid JSON array with pedigree data. Diseases will be auto-detected.
         </div>
