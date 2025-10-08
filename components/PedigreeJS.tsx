@@ -106,7 +106,7 @@ const PedigreeJSComponent: React.FC = () => {
         };
 
         // Check for cached data
-        let finalOpts = { ...opts };
+        let finalOpts: any = { ...opts };
         let local_dataset;
         try {
           local_dataset = pedigreejs_pedcache.current(opts);
@@ -142,7 +142,7 @@ const PedigreeJSComponent: React.FC = () => {
             // Auto-detect diseases from loaded data
             const detectedDiseases = autoDetectDiseases(data);
             
-            const newOpts = { ...opts, dataset: data };
+            const newOpts: any = { ...opts, dataset: data };
             if (detectedDiseases.length > 0) {
               newOpts.diseases = detectedDiseases;
             }
@@ -181,11 +181,12 @@ const PedigreeJSComponent: React.FC = () => {
         
         // Initialize buttons after pedigree is loaded
         setTimeout(() => {
-          if (typeof pedigreeModule.addButtons === 'function') {
-            pedigreeModule.addButtons(finalOpts);
+          const pedModule = pedigreeModule as any;
+          if (typeof pedModule.addButtons === 'function') {
+            pedModule.addButtons(finalOpts);
           }
-          if (typeof pedigreeModule.addIO === 'function') {
-            pedigreeModule.addIO(finalOpts);
+          if (typeof pedModule.addIO === 'function') {
+            pedModule.addIO(finalOpts);
           }
         }, 100);
 
