@@ -163,7 +163,7 @@ const PedigreeJSComponent: React.FC = () => {
         // Initialize pedigree
         showPedigree(finalOpts);
         
-        // Disable right-click context menu on SVG canvas
+        // Disable right-click context menu and handle wheel events on SVG canvas
         setTimeout(() => {
           const pedigreeContainer = document.getElementById('pedigreejs');
           if (pedigreeContainer) {
@@ -171,6 +171,11 @@ const PedigreeJSComponent: React.FC = () => {
               e.preventDefault();
               return false;
             });
+            
+            // Prevent page scroll, only allow zoom
+            pedigreeContainer.addEventListener('wheel', (e) => {
+              e.preventDefault();
+            }, { passive: false });
           }
         }, 500);
         
