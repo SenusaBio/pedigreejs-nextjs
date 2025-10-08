@@ -8,6 +8,7 @@ const PedigreeJSComponent: React.FC = () => {
   const historyRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [jsonInput, setJsonInput] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [currentOpts, setCurrentOpts] = useState<any>(null);
   const [jsonError, setJsonError] = useState<string>('');
 
@@ -22,8 +23,11 @@ const PedigreeJSComponent: React.FC = () => {
         const $ = (await import('jquery')).default;
         
         // Make jQuery available globally first
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).d3 = d3;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).$ = $;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).jQuery = $;
         
         // Load jQuery UI from CDN
@@ -40,9 +44,10 @@ const PedigreeJSComponent: React.FC = () => {
 
         // Import the pedigreejs library dynamically
         const pedigreeModule = await import('../lib/pedigreejs.es.v4.0.0-rc1');
-        const { pedigreejs, pedigreejs_zooming, pedigreejs_pedcache, pedigreejs_io } = pedigreeModule;
+        const { pedigreejs_pedcache } = pedigreeModule;
 
         // Auto-detect diseases from dataset
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const autoDetectDiseases = (dataset: any[]) => {
           const diseaseFields = new Set<string>();
           
@@ -91,21 +96,10 @@ const PedigreeJSComponent: React.FC = () => {
           'DEBUG': false
         });
 
-        // Function to clean circular references from dataset
-        const cleanDataset = (dataset: any[]) => {
-          return dataset.map(person => {
-            const cleaned = { ...person };
-            // Remove circular reference properties that pedigreejs adds internally
-            delete cleaned.father;
-            delete cleaned.mother;
-            delete cleaned.parent_node;
-            delete cleaned.children;
-            delete cleaned.partners;
-            return cleaned;
-          });
-        };
+
 
         // Check for cached data
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let finalOpts: any = { ...opts };
         let local_dataset;
         try {
@@ -142,6 +136,7 @@ const PedigreeJSComponent: React.FC = () => {
             // Auto-detect diseases from loaded data
             const detectedDiseases = autoDetectDiseases(data);
             
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const newOpts: any = { ...opts, dataset: data };
             if (detectedDiseases.length > 0) {
               newOpts.diseases = detectedDiseases;
@@ -181,6 +176,7 @@ const PedigreeJSComponent: React.FC = () => {
         
         // Initialize buttons after pedigree is loaded
         setTimeout(() => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const pedModule = pedigreeModule as any;
           if (typeof pedModule.addButtons === 'function') {
             pedModule.addButtons(finalOpts);
@@ -195,20 +191,20 @@ const PedigreeJSComponent: React.FC = () => {
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const showPedigree = (opts: any) => {
+      const p = document.getElementById("pedigreejs");
+      const ped = document.getElementById("pedigree");
+      if (!p && ped) {
+        const newP = document.createElement('div');
+        newP.id = 'pedigreejs';
+        ped.appendChild(newP);
+        pedigreejs_load(opts);
+      }
+    };
+
     initializePedigree();
   }, []);
-
-  const showPedigree = (opts: any) => {
-    const p = document.getElementById("pedigreejs");
-    const ped = document.getElementById("pedigree");
-    if (!p && ped) {
-      const newP = document.createElement('div');
-      newP.id = 'pedigreejs';
-      ped.appendChild(newP);
-      pedigreejs_load(opts);
-    }
-
-  };
 
   const formatJson = (text: string) => {
     try {
@@ -309,6 +305,7 @@ const PedigreeJSComponent: React.FC = () => {
       }
       
       // Auto-detect diseases from loaded data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const autoDetectDiseases = (dataset: any[]) => {
         const diseaseFields = new Set<string>();
         
@@ -345,7 +342,8 @@ const PedigreeJSComponent: React.FC = () => {
       
       // Rebuild pedigree with new data
       const pedigreeModule = await import('../lib/pedigreejs.es.v4.0.0-rc1');
-      const { pedigreejs, pedigreejs_zooming } = pedigreeModule;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { pedigreejs, pedigreejs_zooming } = pedigreeModule as any;
       
       pedigreejs.rebuild(newOpts);
       pedigreejs_zooming.scale_to_fit(newOpts);
@@ -359,12 +357,15 @@ const PedigreeJSComponent: React.FC = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pedigreejs_load = async (opts: any) => {
     try {
       const pedigreeModule = await import('../lib/pedigreejs.es.v4.0.0-rc1');
-      const { pedigreejs, pedigreejs_zooming } = pedigreeModule;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { pedigreejs, pedigreejs_zooming } = pedigreeModule as any;
       pedigreejs.rebuild(opts);
       pedigreejs_zooming.scale_to_fit(opts);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       let msg;
       if (typeof e === "string") {
